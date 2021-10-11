@@ -6,10 +6,10 @@ import (
 	"log"
 	"os"
 
-	"rbac-check/client"
-	"rbac-check/config"
-	"rbac-check/get"
-	"rbac-check/validate"
+	"github.com/ministryofjustice/cloud-platform-environments/internal/client"
+	"github.com/ministryofjustice/cloud-platform-environments/internal/config"
+	"github.com/ministryofjustice/cloud-platform-environments/internal/get"
+	"github.com/ministryofjustice/cloud-platform-environments/internal/validate"
 
 	"github.com/ministryofjustice/cloud-platform-environments/pkg/namespace"
 	ghaction "github.com/sethvargo/go-githubactions"

@@ -5,7 +5,9 @@ go 1.17
 require (
 	github.com/aws/aws-sdk-go v1.40.47
 	github.com/google/go-github v17.0.0+incompatible
+	github.com/google/go-github/v35 v35.3.0
 	github.com/ministryofjustice/cloud-platform-how-out-of-date-are-we/reports/pkg/hoodaw v0.0.0-20210922151029-a89dd7c838bb
+	github.com/sethvargo/go-githubactions v0.4.0
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/client-go v0.22.2
@@ -16,7 +18,7 @@ require (
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.5 // indirect
+	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
@@ -26,6 +28,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
