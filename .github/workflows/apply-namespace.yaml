@@ -1,7 +1,8 @@
 name: Auto-apply a given namepsace
 on:
+  workflow_dispatch:
   push:
-    tags:
+    branches:
       - 'apply-*'
 jobs:
   test:
