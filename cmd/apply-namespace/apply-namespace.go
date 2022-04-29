@@ -48,7 +48,6 @@ func main() {
 
 	var (
 		tag = flag.String("tag", os.Getenv("GITHUB_REF"), "GitHub branch reference.")
-	//	token = flag.String("token", os.Getenv("GITHUB_OAUTH_TOKEN"), "Personal access token for GitHub API.")
 	)
 
 	var config ConfigVars
@@ -69,8 +68,11 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	if *tag == "" && config.Namespace == "" {
+		log.Fatal("GITHUB_REF or NAMESPACE environment variable need to apply)")
+	}
 	// branchRef is expected in the format:
-	// "refs/pull/<pull request number>/merge"
+	// "refs/tags/tag-name"
 	// This is usually populated by a GitHub action.
 	tagStr := strings.Split(*tag, "/")
 
@@ -105,13 +107,6 @@ func PlanNamespace(config ConfigVars) error {
 	}
 
 	key := config.PipelineStateKeyPrefix + config.PipelineClusterState + "/" + config.Namespace + "/terraform.tfstate"
-
-	// tfArgs := []string{
-	// 	"init",
-	// 	fmt.Sprintf("%s=bucket=%s", "-backend-config", config.StateBucket),
-	// 	fmt.Sprintf("%s=key=%s", "-backend-config", key),
-	// 	fmt.Sprintf("%s=dynamodb_table=%s", "-backend-config", config.StateLockTable),
-	// 	fmt.Sprintf("%s=region=%s", "-backend-config", config.StateRegion)}
 
 	tfArgs := []string{
 		"init",
