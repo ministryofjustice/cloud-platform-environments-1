@@ -7,3 +7,12 @@ module "github-prototype" {
 
   namespace = var.namespace
 }
+
+module "github-prototype_branch" {
+  source = "github.com/ministryofjustice/cloud-platform-terraform-github-prototype?ref=branch-testing"
+
+  namespace = var.namespace
+  branch = "branch-testing"
+  github_workflow_content          = trimspace("templates/cd-branch-testing.yaml")
+  deployment_file_content          = trimspace("templates/kubernetes-deploy-branch-testing.tpl")
+}
