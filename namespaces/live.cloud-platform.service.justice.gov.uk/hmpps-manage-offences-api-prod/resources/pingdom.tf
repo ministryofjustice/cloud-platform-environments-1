@@ -12,7 +12,7 @@ resource "pingdom_check" "manage-offences-api-production-check" {
   notifywhenbackup         = true
   sendnotificationwhendown = 6
   notifyagainevery         = 0
-  url                      = "/https/manage-offences.hmpps.service.justice.gov.uk"
+  url                      = "/https/manage-offences-api.hmpps.service.justice.gov.uk"
   encryption               = true
   port                     = 443
   tags                     = "dps,hmpps,cloudplatform-managed"
