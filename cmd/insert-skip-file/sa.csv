@@ -1,0 +1,11 @@
+kubectl delete hmpps-historical-prisoner-dev
+hmpps-probation-search-dev
+hmpps-probation-search-preprod
+manage-intelligence-dev
+peoplefinder-demo
+peoplefinder-development
+peoplefinder-staging
+prisoner-content-hub-development
+prisoner-content-hub-staging
+prisoner-offender-search-dev
+prisoner-offender-search-preprod
