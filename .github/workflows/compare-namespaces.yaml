@@ -5,6 +5,7 @@ on:
     paths:
       - 'namespaces/live.cloud-platform.service.justice.gov.uk/**'
       - 'namespaces/live-2.cloud-platform.service.justice.gov.uk/**'
+  workflow_dispatch:
 
 env:
   GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -23,4 +24,4 @@ jobs:
       
       - id: approve_colab_user
         name: Check PR user 
-        uses: ministryofjustice/cloud-platform-environments/cmd/terraform-ns-checker@main
+        uses: ministryofjustice/cloud-platform-environments/cmd/compare-namespace@main

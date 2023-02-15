@@ -6,4 +6,4 @@ COPY . .
 RUN go get -v -u ./...
 RUN go build .
 
-CMD ["terraform-ns-checker"]
+CMD ["compare-namespace"]
