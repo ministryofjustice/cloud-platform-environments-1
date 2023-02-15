@@ -24,4 +24,4 @@ jobs:
       
       - id: approve_colab_user
         name: Check PR user 
-        uses: ministryofjustice/cloud-platform-environments/cmd/compare-namespace@main
+        uses: jackstockley89/cloud-platform-environments/cmd/compare-namespace@main
