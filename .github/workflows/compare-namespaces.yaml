@@ -23,4 +23,4 @@ jobs:
       
       - id: approve_colab_user
         name: Check PR user 
-        uses: ministryofjustice/cloud-platform-environments/cmd/check-namespaces@main
+        uses: ministryofjustice/cloud-platform-environments/cmd/terraform-ns-checker@main
