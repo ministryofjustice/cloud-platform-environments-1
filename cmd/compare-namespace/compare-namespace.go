@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/hcl/v2"
@@ -25,6 +26,7 @@ var (
 
 // github variables
 var (
+	client        *github.Client
 	ctx           context.Context
 	token         = flag.String("token", os.Getenv("GITHUB_OAUTH_TOKEN"), "GihHub Personel token string")
 	githubref     = flag.String("branch", os.Getenv("GITHUB_REF"), "GitHub branch reference.")
@@ -32,31 +34,20 @@ var (
 	repoNamespace string
 )
 
-// listFiles will gather a list of tf files to be checked for namespace comparisons
-func listFiles() string {
-	var client *github.Client
-	if *token == "" {
-		client = github.NewClient(nil)
-	} else {
-		ctx = context.Background()
-		ts := oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: *token},
-		)
-		tc := oauth2.NewClient(ctx, ts)
-
-		client = github.NewClient(tc)
-	}
-
+var (
 	// repo user and repo name
-	gitRepoS := strings.Split(gitRepo, "/")
-	owner := gitRepoS[0]
-	repo := gitRepoS[1]
+	gitRepoS = strings.Split(gitRepo, "/")
+	owner    = gitRepoS[0]
+	repo     = gitRepoS[1]
 
 	// get pr owner
-	githubrefS := strings.Split(*githubref, "/")
-	branch := githubrefS[2]
-	bid, _ := strconv.Atoi(branch)
+	githubrefS = strings.Split(*githubref, "/")
+	branch     = githubrefS[2]
+	bid, _     = strconv.Atoi(branch)
+)
 
+// listFiles will gather a list of tf files to be checked for namespace comparisons
+func listFiles() string {
 	var filename string
 
 	prs, _, err := client.PullRequests.ListFiles(ctx, owner, repo, bid, nil)
@@ -171,11 +162,31 @@ func prComment(filename string) {
 	* TODO Pass Sercet Name
 	* TODO Pass Secret Namespace
 	 */
-	fmt.Println("Differnet namespaces")
-	fmt.Printf("Repository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
+
+	body := fmt.Sprint("Differnet namespaces\nRepository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
+
+	cmt := &github.PullRequestComment{
+		Body:      &body,
+		CreatedAt: &time.Time{},
+		UpdatedAt: &time.Time{},
+	}
+
+	client.PullRequests.CreateComment(ctx, owner, repo, bid, cmt)
 }
 
 func main() {
+	if *token == "" {
+		client = github.NewClient(nil)
+	} else {
+		ctx = context.Background()
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: *token},
+		)
+		tc := oauth2.NewClient(ctx, ts)
+
+		client = github.NewClient(tc)
+	}
+
 	filename := listFiles()
 	filenameS := strings.Split(filename, "/")
 	repoNamespace = filenameS[2]
