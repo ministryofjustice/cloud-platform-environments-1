@@ -32,7 +32,7 @@ var (
 	repoNamespace string
 )
 
-// TODO listFiles will gather a list of tf files to be checked for namespace comparisons
+// listFiles will gather a list of tf files to be checked for namespace comparisons
 func listFiles() string {
 	var client *github.Client
 	if *token == "" {
