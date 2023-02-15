@@ -1,4 +1,4 @@
-module github.com/jackstockley89/cloud-platform-environments/cmd/compare-namespace
+module github.com/ministryofjustice/cloud-platform-environments/cmd/compare-namespace
 
 go 1.19
 

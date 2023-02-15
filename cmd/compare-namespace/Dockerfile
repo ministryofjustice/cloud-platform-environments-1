@@ -1,9 +1,16 @@
-FROM golang:1.19
+FROM golang:1.19.2-alpine
 
-WORKDIR /go/src/app
-COPY . .
+ENV \
+    CGO_ENABLED=0 \
+    GOOS=linux
 
-RUN go get -v -u ./...
-RUN go build .
+WORKDIR /go/bin
+
+COPY go.mod /go/bin
+COPY go.sum /go/bin
+RUN go mod download
+COPY . /go/bin
+
+RUN go build -ldflags "-s -w" .
 
 CMD ["compare-namespace"]
