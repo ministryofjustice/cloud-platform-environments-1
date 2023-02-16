@@ -22,6 +22,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       
-      - id: approve_colab_user
+      - id: compare-namespace
         name: Check PR user 
         uses: jackstockley89/cloud-platform-environments/cmd/compare-namespace@main
+    
+      - name: Comment on PR if false
+        uses: actions/github-script@v6
+        if: steps.compare-namespace.outputs.mismatch == 'true'
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: steps.compare-namespace.outputs.output
+            });
