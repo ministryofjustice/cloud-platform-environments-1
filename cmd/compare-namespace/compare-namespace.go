@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+	githubaction "github.com/sethvargo/go-githubactions"
 	"golang.org/x/oauth2"
 )
 
@@ -49,7 +49,6 @@ var (
 // listFiles will gather a list of tf files to be checked for namespace comparisons
 func listFiles() string {
 	var filename string
-
 	prs, _, err := client.PullRequests.ListFiles(ctx, owner, repo, bid, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -153,27 +152,6 @@ func varFileSearch(ns string, filename string) (string, error) {
 	return varNamespace, nil
 }
 
-// TODO prComment will update PR with any findings
-func prComment(filename string) {
-	/**
-	* TODO Return values to be passed to the PR
-	* TODO Pass Filename
-	* TODO Pass Repo Namespace
-	* TODO Pass Sercet Name
-	* TODO Pass Secret Namespace
-	 */
-
-	body := fmt.Sprint("Differnet namespaces\nRepository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
-
-	cmt := &github.PullRequestComment{
-		Body:      &body,
-		CreatedAt: &time.Time{},
-		UpdatedAt: &time.Time{},
-	}
-
-	client.PullRequests.CreateComment(ctx, owner, repo, bid, cmt)
-}
-
 func main() {
 	if *token == "" {
 		client = github.NewClient(nil)
@@ -190,7 +168,7 @@ func main() {
 	filename := listFiles()
 	filenameS := strings.Split(filename, "/")
 	repoNamespace = filenameS[2]
-	// filename = "/Users/jackstockley/repo/cloud-platform-environments/" + filename
+	filename = "/Users/jackstockley/repo/fork/cloud-platform-environments-fork/" + filename
 	err := decodeFile(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -211,8 +189,9 @@ func main() {
 	}
 
 	if repoNamespace != secretNamespace {
-
-		prComment(filename)
+		output := fmt.Sprintf("Namespace Mismatch:\nRepository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
+		githubaction.SetOutput("mismatch", "true")
+		githubaction.SetOutput("output", output)
 	} else {
 		fmt.Println("Matching namespaces")
 		fmt.Printf("Repository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
