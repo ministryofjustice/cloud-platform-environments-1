@@ -26,9 +26,11 @@ jobs:
         name: Check PR user 
         uses: jackstockley89/cloud-platform-environments/cmd/compare-namespace@main
     
-      - name: Comment on PR if false
+      - name: Comment Mismatch to Pull Request
         uses: actions/github-script@v6
         if: steps.compare-namespace.outputs.mismatch == 'true'
+        env:
+            MISMATCH: "${{ steps.compare-namespace.outputs.output }}"
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
@@ -36,5 +38,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: steps.compare-namespace.outputs.output
+              body: \`\`\`${process.env.MISMATCH}\`\`\`
             });
