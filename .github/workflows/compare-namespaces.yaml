@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_OAUTH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
 jobs:
   compare-namespaces:
@@ -32,7 +32,7 @@ jobs:
         env:
             MISMATCH: "${{ steps.compare-namespace.outputs.output }}"
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          github-token: "${{ secrets.ACCESS_TOKEN }}"
           script: |
             github.rest.issues.createComment({
               issue_number: context.issue.number,
