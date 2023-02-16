@@ -168,7 +168,7 @@ func main() {
 	filename := listFiles()
 	filenameS := strings.Split(filename, "/")
 	repoNamespace = filenameS[2]
-	filename = "/Users/jackstockley/repo/fork/cloud-platform-environments-fork/" + filename
+	// filename = "/Users/jackstockley/repo/fork/cloud-platform-environments-fork/" + filename
 	err := decodeFile(filename)
 	if err != nil {
 		log.Fatal(err)
