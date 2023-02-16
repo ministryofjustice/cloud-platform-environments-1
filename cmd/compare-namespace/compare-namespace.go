@@ -47,16 +47,12 @@ var (
 )
 
 // listFiles will gather a list of tf files to be checked for namespace comparisons
-func listFiles() string {
-	var filename string
+func listFiles() []*github.CommitFile {
 	prs, _, err := client.PullRequests.ListFiles(ctx, owner, repo, bid, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, pr := range prs {
-		filename = *pr.Filename
-	}
-	return filename
+	return prs
 }
 
 // decodeFile for kube secrets and return namespaces that the secret is attached to
@@ -165,35 +161,38 @@ func main() {
 		client = github.NewClient(tc)
 	}
 
-	filename := listFiles()
-	filenameS := strings.Split(filename, "/")
-	repoNamespace = filenameS[2]
-	// filename = "/Users/jackstockley/repo/fork/cloud-platform-environments-fork/" + filename
-	err := decodeFile(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if strings.Contains(namespaceBlock, "var.") {
-		ns := strings.SplitAfter(namespaceBlock, ".")
-		varNamespace, err := varFileSearch(ns[1], filename)
+	prs := listFiles()
+	for _, pr := range prs {
+		filename := *pr.Filename
+		filenameS := strings.Split(filename, "/")
+		repoNamespace = filenameS[2]
+		// filename = "/Users/jackstockley/repo/fork/cloud-platform-environments-fork/" + filename
+		err := decodeFile(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
-		secretNamespace = varNamespace
-	} else {
-		secretNamespace = namespaceBlock
-	}
+		if strings.Contains(namespaceBlock, "var.") {
+			ns := strings.SplitAfter(namespaceBlock, ".")
+			varNamespace, err := varFileSearch(ns[1], filename)
+			if err != nil {
+				log.Fatal(err)
+			}
+			secretNamespace = varNamespace
+		} else {
+			secretNamespace = namespaceBlock
+		}
 
-	if len(secretNamespace) > 0 && secretNamespace[len(secretNamespace)-1] == '"' {
-		secretNamespace = secretNamespace[1 : len(secretNamespace)-1]
-	}
+		if len(secretNamespace) > 0 && secretNamespace[len(secretNamespace)-1] == '"' {
+			secretNamespace = secretNamespace[1 : len(secretNamespace)-1]
+		}
 
-	if repoNamespace != secretNamespace {
-		output := fmt.Sprintf("Namespace Mismatch:\nRepository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
-		githubaction.SetOutput("mismatch", "true")
-		githubaction.SetOutput("output", output)
-	} else {
-		fmt.Println("Matching namespaces")
-		fmt.Printf("Repository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
+		if repoNamespace != secretNamespace {
+			output := fmt.Sprintf("Namespace Mismatch:\nRepository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
+			githubaction.SetOutput("mismatch", "true")
+			githubaction.SetOutput("output", output)
+		} else {
+			fmt.Println("Matching namespaces")
+			fmt.Printf("Repository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
+		}
 	}
 }
