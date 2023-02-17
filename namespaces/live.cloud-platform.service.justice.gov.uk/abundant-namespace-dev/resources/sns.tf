@@ -38,7 +38,6 @@ resource "kubernetes_secret" "example_sns_topic_two" {
   metadata {
     name      = "sns-topic-sns-user"
     namespace = "abundant-namespace-staging"
->>>>>>> 5dc6d18e6 (test(test): test)
   }
 
   data = {
