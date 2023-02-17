@@ -36,7 +36,7 @@ jobs:
           script: |
             const output = 
             #### Terraform cross namespace check
-            \`\`\`${process.env.MISMATCH}\`\`\`
+            `${process.env.MISMATCH}`
            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
