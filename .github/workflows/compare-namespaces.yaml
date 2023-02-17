@@ -30,13 +30,17 @@ jobs:
         uses: actions/github-script@v6
         if: steps.compare-namespace.outputs.mismatch == 'true'
         env:
-            MISMATCH: "${{ steps.compare-namespace.outputs.stderr }}"
+            MISMATCH: "${{ steps.compare-namespace.outputs.stdin }}"
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
+            const output = 
+            #### Terraform cross namespace check
+            \`\`\`${process.env.MISMATCH}\`\`\`
+           
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `${process.env.MISMATCH}`
+              body: output
             });
