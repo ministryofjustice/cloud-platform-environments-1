@@ -33,4 +33,3 @@ resource "kubernetes_secret" "example_sns_topic" {
     topic_arn         = module.abundant_namespace_dev_sns.topic_arn
   }
 }
-
