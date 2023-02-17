@@ -13,6 +13,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
+
 	githubaction "github.com/sethvargo/go-githubactions"
 	"golang.org/x/oauth2"
 )
@@ -38,13 +39,6 @@ var (
 	branch     = githubrefS[2]
 	bid, _     = strconv.Atoi(branch)
 )
-
-type results struct {
-	RepoNamespace   string
-	Filename        string
-	ResourceName    string
-	SecretNamespace string
-}
 
 // listFiles will gather a list of tf files to be checked for namespace comparisons
 func listFiles() []*github.CommitFile {
@@ -91,19 +85,17 @@ func resourceType(block *hclwrite.Block, filename, label string) {
 	var namespaceBlock string
 	var secretNamespace string
 	var resourceName []string
-	if label == "kubernetes_secret" {
-		resourceName = block.Labels()
-		metadata := block.Body().Blocks()
-		for _, m := range metadata {
-			if m.Type() == "metadata" {
-				for key, attr := range m.Body().Attributes() {
-					if key == "namespace" {
-						expr := attr.Expr()
-						exprTokens := expr.BuildTokens(nil)
-						var valueTokens hclwrite.Tokens
-						valueTokens = append(valueTokens, exprTokens...)
-						namespaceBlock = strings.TrimSpace(string(valueTokens.Bytes()))
-					}
+	resourceName = block.Labels()
+	metadata := block.Body().Blocks()
+	for _, m := range metadata {
+		if m.Type() == "metadata" {
+			for key, attr := range m.Body().Attributes() {
+				if key == "namespace" {
+					expr := attr.Expr()
+					exprTokens := expr.BuildTokens(nil)
+					var valueTokens hclwrite.Tokens
+					valueTokens = append(valueTokens, exprTokens...)
+					namespaceBlock = strings.TrimSpace(string(valueTokens.Bytes()))
 				}
 			}
 			if strings.Contains(namespaceBlock, "var.") {
@@ -117,29 +109,10 @@ func resourceType(block *hclwrite.Block, filename, label string) {
 				secretNamespace = namespaceBlock
 			}
 
-			if len(secretNamespace) > 0 && secretNamespace[len(secretNamespace)-1] == '"' {
-				secretNamespace = secretNamespace[1 : len(secretNamespace)-1]
-			}
-			rname := resourceName[1]
-			mismatchList := make([]results, 0)
-			result := []results{{repoNamespace, filename, rname, secretNamespace}}
-
-			for _, details := range result {
-				mismatchList = append(mismatchList, results{RepoNamespace: details.RepoNamespace, Filename: details.Filename, ResourceName: details.ResourceName, SecretNamespace: details.SecretNamespace})
-			}
-
 			if repoNamespace != secretNamespace {
-				for _, details := range mismatchList {
-					output := fmt.Sprintf("Namespace: Mismatch\nRepository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", details.RepoNamespace, details.Filename, details.ResourceName, details.SecretNamespace)
-					fmt.Println(output)
-					githubaction.SetOutput("mismatch", "true")
-					githubaction.SetOutput("output", output)
-				}
-			} else {
-				for _, details := range mismatchList {
-					output := fmt.Sprintf("Namespace: Match\nRepository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", details.RepoNamespace, details.Filename, details.ResourceName, details.SecretNamespace)
-					fmt.Println(output)
-				}
+				output := fmt.Sprintf("Namespace: Mismatch\nRepository Namespace: %s\nFile: %s\nResource Name: %s\nResource Namespace: %s\n", repoNamespace, filename, resourceName[1], secretNamespace)
+				fmt.Println(output)
+				githubaction.SetOutput("mismatch", "true")
 			}
 		}
 	}
@@ -203,7 +176,7 @@ func main() {
 		filename := *pr.Filename
 		filenameS := strings.Split(filename, "/")
 		repoNamespace = filenameS[2]
-		// filename = "/Users/jackstockley/repo/fork/cloud-platform-environments-fork/" + filename
+		filename = "/Users/jackstockley/repo/fork/cloud-platform-environments-fork/" + filename
 		err := decodeFile(filename)
 		if err != nil {
 			log.Fatal(err)

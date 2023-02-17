@@ -30,7 +30,7 @@ jobs:
         uses: actions/github-script@v6
         if: steps.compare-namespace.outputs.mismatch == 'true'
         env:
-            MISMATCH: "${{ steps.compare-namespace.outputs.output }}"
+            MISMATCH: "${{ steps.compare-namespace.outputs.*, \n }}"
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
