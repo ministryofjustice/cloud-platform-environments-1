@@ -120,9 +120,9 @@ func resourceType(block *hclwrite.Block, filename, label string) {
 			if len(secretNamespace) > 0 && secretNamespace[len(secretNamespace)-1] == '"' {
 				secretNamespace = secretNamespace[1 : len(secretNamespace)-1]
 			}
-
+			rname := resourceName[1]
 			mismatchList := make([]results, 0)
-			result := []results{{repoNamespace, filename, resourceName[1], secretNamespace}}
+			result := []results{{repoNamespace, filename, rname, secretNamespace}}
 
 			for _, details := range result {
 				mismatchList = append(mismatchList, results{RepoNamespace: details.RepoNamespace, Filename: details.Filename, ResourceName: details.ResourceName, SecretNamespace: details.SecretNamespace})
