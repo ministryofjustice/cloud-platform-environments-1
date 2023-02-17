@@ -35,8 +35,14 @@ jobs:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
             const output = 
-            #### Terraform cross namespace check
-            `${process.env.MISMATCH}`
+                `#### Terraform cross namespace check 
+                
+                <details><summary>Show</summary>
+                
+                \`\`\`${process.env.MISMATCH}`\`\`\`
+                
+                </details>
+                *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
