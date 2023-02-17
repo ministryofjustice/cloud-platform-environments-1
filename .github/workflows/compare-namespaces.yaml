@@ -23,14 +23,14 @@ jobs:
         uses: actions/checkout@v3
       
       - id: compare-namespace
-        name: Check PR user 
+        name: Check Cross Namespace Deployments  
         uses: jackstockley89/cloud-platform-environments/cmd/compare-namespace@main
     
       - name: Comment Mismatch to Pull Request
         uses: actions/github-script@v6
         if: steps.compare-namespace.outputs.mismatch == 'true'
         env:
-            MISMATCH: "${{ steps.compare-namespace.outputs.stdout }}"
+            MISMATCH: "${{ steps.compare-namespace.outputs.stderr }}"
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
