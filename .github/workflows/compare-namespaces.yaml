@@ -1,4 +1,4 @@
-name: Compare namespaces within Terraform, matches directory namespace
+name: Compare Respository Namespace with Terraform Resource Namespace
 
 on:
   pull_request:
@@ -24,29 +24,26 @@ jobs:
       
       - id: compare-namespace
         name: Check Cross Namespace Deployments  
-        uses: jackstockley89/cloud-platform-environments/cmd/compare-namespace@main
+        uses: jackstockley89/cloud-platform-environments/cmd/compare-namespace@check-test
     
       - name: Comment Mismatch to Pull Request
         uses: actions/github-script@v6
         if: steps.compare-namespace.outputs.mismatch == 'true'
         env:
-            MISMATCH: "${{ steps.compare-namespace.outputs.stdin }}"
+          RESULT: "PLease review the following\n${{ steps.compare-namespace.outputs.result }}"
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           script: |
-            const output = 
-                `#### Terraform cross namespace check 
-                
+                const output = `#### Namespace Mismatch Found:
                 <details><summary>Show</summary>
                 
-                \`\`\`${process.env.MISMATCH}`\`\`\`
+                \`\`\`${process.env.RESULT}\`\`\`
                 
                 </details>
-                *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
-           
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
+                *Pusher: @${{ github.actor }}, Workflow: \`${{ github.workflow }}\`*`;
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: output
+                })
