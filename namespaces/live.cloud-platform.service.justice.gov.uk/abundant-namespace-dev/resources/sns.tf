@@ -33,3 +33,16 @@ resource "kubernetes_secret" "example_sns_topic" {
     topic_arn         = module.abundant_namespace_dev_sns.topic_arn
   }
 }
+
+resource "kubernetes_secret" "example_sns_topic-stg" {
+  metadata {
+    name      = "sns-topic-sns-user"
+    namespace = "abundant-namespace-stg"
+  }
+
+  data = {
+    access_key_id     = module.abundant_namespace_dev_sns.access_key_id
+    secret_access_key = module.abundant_namespace_dev_sns.secret_access_key
+    topic_arn         = module.abundant_namespace_dev_sns.topic_arn
+  }
+}
