@@ -39,3 +39,15 @@ resource "kubernetes_secret" "abundant_namespace_sqs" {
   }
 }
 
+resource "aws_sns_topic_subscription" "abundant_namespace_sqs_2" {
+  provider  = aws.london
+  topic_arn = module.hmpps-domain-events.topic_arn
+  protocol  = "sqs"
+  endpoint  = module.abundant_namespace_sqs.sqs_arn
+  filter_policy = jsonencode({
+    eventType = [
+      "enforcement.breach.raised",
+      "enforcement.breach.concluded"
+    ]
+  })
+}

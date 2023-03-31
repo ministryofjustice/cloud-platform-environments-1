@@ -52,8 +52,6 @@ type Mismatch struct {
 	// Module details
 	ModuleTypeName,
 	ModuleNamespace string
-	// Other
-	NotApplicable bool
 }
 
 type Result struct {
@@ -93,7 +91,7 @@ func decodeFile() ([]*hclwrite.Block, error) {
 }
 
 // resouceType() will search for namespace in all resources raised in a Pull Request
-func resourceType(block *hclwrite.Block) (string, string, bool) {
+func resourceType(block *hclwrite.Block) (string, string) {
 	var resourceName string
 	var namespaceVar string
 
@@ -131,18 +129,14 @@ func resourceType(block *hclwrite.Block) (string, string, bool) {
 						namespaceVar = varNamespace
 					}
 				}
-				if namespaceVar != "" && resourceName != "" {
-					return namespaceVar, resourceName, true
-				}
-
 			}
 		}
 	}
-	return namespaceVar, resourceName, false
+	return namespaceVar, resourceName
 }
 
 // moduleType() will search for namespace in all modules raise in a Pull Request
-func moduleType(block *hclwrite.Block) (string, bool) {
+func moduleType(block *hclwrite.Block) string {
 	var namespaceVar string
 	body := block.Body()
 	if body.Attributes()["namespace"] != nil {
@@ -158,12 +152,9 @@ func moduleType(block *hclwrite.Block) (string, bool) {
 				log.Fatal(err)
 			}
 			namespaceVar = varNamespace
-			if namespaceVar == "" {
-				return namespaceVar, true
-			}
 		}
 	}
-	return namespaceVar, false
+	return namespaceVar
 }
 
 // varFileSearch() will search for the namespace in the variables.tf file if the search contians 'var.'
@@ -212,10 +203,10 @@ func prMessage(t string) {
 	githubaction.SetOutput("mismatch", "true")
 	switch {
 	case t == "resource":
-		r.Result = fmt.Sprintf("\nRepository Namespace: %s\nFile: %s\nResosurce Type Name: %s\nResource Name: %s\nResource Namespace: %s\n", mm.RepositoryNamespace, mm.File, mm.ResourceTypeName, mm.ResourceName, mm.ResourceNamespace)
+		r.Result = fmt.Sprintf("\nRepository Namespace: %s\nFile: %s\nResource: %s\nResource Name: %s\nResource Namespace: %s\n", mm.RepositoryNamespace, mm.File, mm.ResourceTypeName, mm.ResourceName, mm.ResourceNamespace)
 		fmt.Println(r.Result)
 	case t == "module":
-		r.Result = fmt.Sprintf("\nRepository Namespace: %s\nFile: %s\nModule Type Name: %s\nModule Namespace: %s\n", mm.RepositoryNamespace, mm.File, mm.ModuleTypeName, mm.ModuleNamespace)
+		r.Result = fmt.Sprintf("\nRepository Namespace: %s\nFile: %s\nModule: %s\nModule Namespace: %s\n", mm.RepositoryNamespace, mm.File, mm.ModuleTypeName, mm.ModuleNamespace)
 		fmt.Println(r.Result)
 	}
 }
@@ -252,19 +243,19 @@ func main() {
 				switch {
 				case block.Type() == "resource":
 					rtn := block.Labels()
-					mm.ResourceTypeName = rtn[1]
-					mm.ResourceNamespace, mm.ResourceName, mm.NotApplicable = resourceType(block)
-					if mm.NotApplicable {
-						continue
+					mm.ResourceTypeName = "[" + rtn[0] + "]" + " - " + rtn[1]
+					mm.ResourceNamespace, mm.ResourceName = resourceType(block)
+					if mm.ResourceNamespace == "" {
+						fmt.Printf("No Namespace data found in Resource: %s - skipping...\n", mm.ResourceTypeName)
 					} else if !strings.Contains(mm.ResourceNamespace, mm.RepositoryNamespace) {
 						prMessage("resource")
 					}
 				case block.Type() == "module":
-					rtn := block.Labels()
-					mm.ModuleTypeName = rtn[0]
-					mm.ModuleNamespace, mm.NotApplicable = moduleType(block)
-					if mm.NotApplicable {
-						continue
+					mtn := block.Labels()
+					mm.ModuleTypeName = mtn[0]
+					mm.ModuleNamespace = moduleType(block)
+					if mm.ModuleNamespace == "" {
+						fmt.Println("No Namespace data found in Module: %s - skipping...\n", mm.ModuleTypeName)
 					} else if !strings.Contains(mm.ModuleNamespace, mm.RepositoryNamespace) {
 						prMessage("module")
 					}
