@@ -52,13 +52,15 @@ type Mismatch struct {
 	// Module details
 	ModuleTypeName,
 	ModuleNamespace string
+	// Other
+	NotApplicable bool
 }
 
 type Result struct {
 	Result string
 }
 
-// listFiles will gather a list of tf files to be checked for namespace comparisons
+// listFiles() will gather a list of tf files to be checked for namespace comparisons using github ref for the pull request
 func listFiles() []*github.CommitFile {
 	prs, _, err := client.PullRequests.ListFiles(ctx, owner, repo, bid, nil)
 	if err != nil {
@@ -67,7 +69,7 @@ func listFiles() []*github.CommitFile {
 	return prs
 }
 
-// decodeFile for kube secrets and return namespaces that the secret is attached to
+// decodeFile() will read tf files and return the file to for the comparison
 func decodeFile() ([]*hclwrite.Block, error) {
 	var blocks []*hclwrite.Block
 
@@ -90,8 +92,8 @@ func decodeFile() ([]*hclwrite.Block, error) {
 	return blocks, nil
 }
 
-// resouceType will search for namespace in all resources raised in a Pull Request
-func resourceType(block *hclwrite.Block) (string, string) {
+// resouceType() will search for namespace in all resources raised in a Pull Request
+func resourceType(block *hclwrite.Block) (string, string, bool) {
 	var resourceName string
 	var namespaceVar string
 
@@ -129,14 +131,18 @@ func resourceType(block *hclwrite.Block) (string, string) {
 						namespaceVar = varNamespace
 					}
 				}
+				if namespaceVar != "" && resourceName != "" {
+					return namespaceVar, resourceName, true
+				}
+
 			}
 		}
 	}
-	return namespaceVar, resourceName
+	return namespaceVar, resourceName, false
 }
 
-// moduleType will search for namespace in all modules raise in a Pull Request
-func moduleType(block *hclwrite.Block) string {
+// moduleType() will search for namespace in all modules raise in a Pull Request
+func moduleType(block *hclwrite.Block) (string, bool) {
 	var namespaceVar string
 	body := block.Body()
 	if body.Attributes()["namespace"] != nil {
@@ -152,12 +158,15 @@ func moduleType(block *hclwrite.Block) string {
 				log.Fatal(err)
 			}
 			namespaceVar = varNamespace
+			if namespaceVar == "" {
+				return namespaceVar, true
+			}
 		}
 	}
-	return namespaceVar
+	return namespaceVar, false
 }
 
-// varFileSearch will search for the namespace in the variables.tf file if the search returns a var.namespace
+// varFileSearch() will search for the namespace in the variables.tf file if the search contians 'var.'
 func varFileSearch(ns string) (string, error) {
 	path := strings.SplitAfter(mm.File, "resources/")
 	data, err := os.ReadFile(path[0] + "variables.tf")
@@ -197,7 +206,7 @@ func varFileSearch(ns string) (string, error) {
 	return vn, nil
 }
 
-// prMessage adds a meesage to a pull request is there is a mismatch,
+// prMessage() adds a meesage to a pull request if there is a mismatch,
 // customising the message depending if its a resource or module
 func prMessage(t string) {
 	githubaction.SetOutput("mismatch", "true")
@@ -212,16 +221,15 @@ func prMessage(t string) {
 }
 
 func main() {
+	ctx = context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: *token},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+
+	client = github.NewClient(tc)
 	if *token == "" {
 		client = github.NewClient(nil)
-	} else {
-		ctx = context.Background()
-		ts := oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: *token},
-		)
-		tc := oauth2.NewClient(ctx, ts)
-
-		client = github.NewClient(tc)
 	}
 
 	prs := listFiles()
@@ -236,7 +244,6 @@ func main() {
 		if filepath.Ext(mm.File) == ".tf" {
 			fileS := strings.Split(mm.File, "/")
 			mm.RepositoryNamespace = fileS[2]
-			// mm.File = "/Users/jackstockley/repo/fork/cloud-platform-environments-fork/" + mm.File
 			blocks, err := decodeFile()
 			if err != nil {
 				log.Fatal(err)
@@ -246,15 +253,19 @@ func main() {
 				case block.Type() == "resource":
 					rtn := block.Labels()
 					mm.ResourceTypeName = rtn[1]
-					mm.ResourceNamespace, mm.ResourceName = resourceType(block)
-					if !strings.Contains(mm.ResourceNamespace, mm.RepositoryNamespace) {
+					mm.ResourceNamespace, mm.ResourceName, mm.NotApplicable = resourceType(block)
+					if mm.NotApplicable {
+						continue
+					} else if !strings.Contains(mm.ResourceNamespace, mm.RepositoryNamespace) {
 						prMessage("resource")
 					}
 				case block.Type() == "module":
 					rtn := block.Labels()
 					mm.ModuleTypeName = rtn[0]
-					mm.ModuleNamespace = moduleType(block)
-					if !strings.Contains(mm.ModuleNamespace, mm.RepositoryNamespace) {
+					mm.ModuleNamespace, mm.NotApplicable = moduleType(block)
+					if mm.NotApplicable {
+						continue
+					} else if !strings.Contains(mm.ModuleNamespace, mm.RepositoryNamespace) {
 						prMessage("module")
 					}
 				}
