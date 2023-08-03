@@ -39,7 +39,7 @@ jobs:
                 const output = `#### Prometheus Operator Linting Results \`${{ steps.po-linter.outcome }}\`
 
       - name: Failed Result
-        if: steps.po-linter.outcome != 'success'
+        if: steps.po-linter.outcome == 'failure'
         uses: actions/github-script@v6
         env:
             summary: "Result:\n${{ steps.po-linter.outputs.po-linter }}"
@@ -62,5 +62,5 @@ jobs:
                 }) 
        
       - name: Exitcode
-        if: steps.po-linter.outcome != 'success'
+        if: steps.po-linter.outcome == 'failure'
         run: exit 1

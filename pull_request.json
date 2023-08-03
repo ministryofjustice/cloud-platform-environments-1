@@ -1,0 +1,10 @@
+{
+  "pull_request": {
+    "head": {
+      "ref": "po-linter-testing"
+    },
+    "base": {
+      "ref": "po-linter-testing"
+    }
+  }
+}
