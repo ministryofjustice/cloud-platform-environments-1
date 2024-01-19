@@ -70,5 +70,4 @@ which appears to remove policy config. However examination of the plan will reve
         user   = "cp-dynamo-"cp-abcdefghij123
 ```
 
-
 test
