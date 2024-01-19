@@ -1,0 +1,50 @@
+name: Grafana Dashboard Linter
+
+on:
+  pull_request:
+    paths:
+      - namespaces/live.cloud-platform.service.justice.gov.uk/*/*grafana*.yaml
+      - namespaces/live.cloud-platform.service.justice.gov.uk/*/*grafana*.yml
+      - namespaces/live-2.cloud-platform.service.justice.gov.uk/*/*grafana*.yaml
+      - namespaces/live-2.cloud-platform.service.justice.gov.uk/*/*grafana*.yml
+
+env:
+  KUBE_CONFIG: $HOME/.kube/config
+  DEFAULT_REGION: eu-west-2
+  PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+  REPO_OWNER: ${{ github.event.pull_request.head.repo.owner.name }}
+  REPO_NAME: ${{ github.event.pull_request.head.repo.name }}
+  
+
+jobs:
+  grafana-dashboard-linter:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+  
+      - name: Get changed files
+        id: changes
+        run: |
+          echo "files=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)" >> $GITHUB_OUTPUT
+
+      - name: oidc login 
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CLOUD_PLATFORM_EKS_OIDC_ROLE }}
+          role-session-name: grafana-dashboard-linter-${{ github.run_id }}
+          aws-region: eu-west-2
+
+      - name: get kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name {{ if contains(steps.changes.outputs.files, 'live-2') }}live-2{{ else }}live{{ end }} \
+            --kubeconfig $HOME/.kube/config \
+            --region ${DEFAULT_REGION}
+      
+      - name: lint grafana dashboard
+        uses: docker://quay.io/ministryofjustice/cloud-platform-grafana-dashboard-linter:latest
