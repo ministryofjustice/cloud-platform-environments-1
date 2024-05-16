@@ -1,0 +1,22 @@
+name: grafana-linter
+on:
+  pull_request:
+    paths:
+      - 'namespaces/live.cloud-platform.service.justice.gov.uk/**/dashboard-*.yaml'
+      - 'namespaces/live.cloud-platform.service.justice.gov.uk/**/dashboard-*.yml'
+
+jobs:
+  grafana-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Run Linter
+        uses: docker://ministryofjustice/grafana_linter:0.0.3
+        with:
+          env:
+            GITHUB_REF=${{ github.event.pull_request.head.ref }}
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            GITHUB_OWNER=${{ github.repository_owner }}
+            GITHUB_REPO=${{ github.event.repository.name }}
