@@ -8,15 +8,16 @@ on:
 jobs:
   grafana-linter:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: ${{ github.ref }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      AUTH_TOKEN: ${{ secrets.LINTER_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
       
       - name: Run Linter
-        uses: docker://ministryofjustice/grafana_linter:0.0.3
-        with:
-          env:
-            GITHUB_REF=${{ github.event.pull_request.head.ref }}
-            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-            GITHUB_OWNER=${{ github.repository_owner }}
-            GITHUB_REPO=${{ github.event.repository.name }}
+        uses: docker://ministryofjustice/grafana_linter:0.0.5
+        env:
+          CHECK: "linter"
+            
