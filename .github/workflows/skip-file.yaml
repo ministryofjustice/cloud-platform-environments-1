@@ -20,14 +20,11 @@ jobs:
       name: commit-check
       uses: docker://ministryofjustice/cloud-platform-commit-check:latest
     
-    - name: check commit result
-      run: echo ${{ steps.commit-check.outputs.approval }}
-    
     - name: auto-approve success
-      if: ${{ steps.commit-check.outputs.approval == 'true' }}
+      if: ${{ steps.commit-check.outputs.approval == true }}
       id: auto-approver-pullrequest
       run: echo "This Pull Request can be auto-approved."
       
     - name: auto-approve failure
-      if: ${{ steps.commit-check.outputs.approval == 'false' }}
+      if: ${{ steps.commit-check.outputs.approval == false }}
       run: echo "This Pull Request can not be auto-approved."
