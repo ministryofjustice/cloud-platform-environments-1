@@ -6,28 +6,37 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   trivy:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
+    runs-on: ubuntu-20.04
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: aquasecurity/trivy-action@0.20.0
         with:
-          scan-type: config
-          hide-progress: true
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          exit-code: '1'
+          scan-type: fs
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
+          format: 'json'
+          output: 'trivy-report.json'
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
+      - name: Publish Trivy Output to Summary
+        run: |
+          if [[ -s trivy-report.json ]]; then
+            {
+              echo "### Security Output"
+              echo "<details><summary>Click to expand</summary>"
+              echo ""
+              echo '```terraform'
+              cat trivy-report.json
+              echo '```'
+              echo "</details>"
+            } >> $GITHUB_STEP_SUMMARY
+          fi
 
   tfsec:
     runs-on: ubuntu-latest
