@@ -1,0 +1,13 @@
+severity:
+  - HIGH
+  - CRITICAL
+
+scan:
+  scanners:
+    - misconfing
+
+misconfiguration:
+  include-deprecated-checks: true
+
+  scanners:
+    - terraform
