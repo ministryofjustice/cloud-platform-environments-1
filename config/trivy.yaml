@@ -1,3 +1,9 @@
+format: table
+
+ignorefile: ./config/.trivyignore.yaml
+
+exit-code: 1
+
 severity:
   - HIGH
   - CRITICAL

@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: default
+  name: default1
   namespace: laa-access-civil-legal-aid-dev
 spec:
   podSelector: {}
@@ -15,7 +15,7 @@ kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
 metadata:
   name: allow-ingress-controllers
-  namespace: laa-access-civil-legal-aid-dev
+  namespace: laa-access-civil-legal-aid-dev1
 spec:
   podSelector: {}
   policyTypes:
