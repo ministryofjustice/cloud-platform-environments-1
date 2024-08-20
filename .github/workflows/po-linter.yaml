@@ -9,6 +9,9 @@ on:
     - namespaces/live-2.cloud-platform.service.justice.gov.uk/*/*prometheus*.yml
   workflow_dispatch:
 
+permissions:
+  pull-requests: write
+
 jobs:
   po-lint:
     runs-on: ${{ matrix.os }}
@@ -27,4 +30,5 @@ jobs:
         uses: prymitive/pint-action@v1
         with:
           token: ${{ github.token }}
-          minSeverity: bug
+          requireOwner: 'true'
+
