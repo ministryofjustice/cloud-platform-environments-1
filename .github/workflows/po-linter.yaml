@@ -27,3 +27,5 @@ jobs:
         uses: prymitive/pint-action@v1
         with:
           token: ${{ github.token }}
+          workdir: .
+          requireOwner: 'true'
