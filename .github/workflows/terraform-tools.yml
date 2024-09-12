@@ -16,51 +16,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: aquasecurity/trivy-action@0.20.0
-        with:
-          scan-type: fs
-          ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
-          format: 'json'
-          output: 'trivy-report.json'
-
-      - name: Publish Trivy Output to Summary
-        run: |
-          if [[ -s trivy-report.json ]]; then
-            {
-              echo "### Security Output"
-              echo "<details><summary>Click to expand</summary>"
-              echo ""
-              echo '```terraform'
-              cat trivy-report.json
-              echo '```'
-              echo "</details>"
-            } >> $GITHUB_STEP_SUMMARY
-          fi
-
-  tfsec:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v43
         with:
           dir_names: true
           dir_names_exclude_current_dir: true
+      
       - name: List of changed files
         run: |
-           mkdir -p .tfsec
-           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-              cp -r $file .tfsec | true
-           done
-           ls .tfsec -latr
-      - uses: aquasecurity/tfsec-action@v1.0.3
+          mkdir -p .trivy
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            cp -r $file .trivy | true
+          done
+          ls .trivy -latr
+
+      - uses: aquasecurity/trivy-action@0.24.0
         with:
-          working_directory: .tfsec
-          soft_fail: true
-          github_token: ${{ github.token }}
-          additional_args: --force-all-dirs -m=HIGH -e=github-repositories-private,github-branch_protections-require_signed_commits,github-actions-no-plain-text-action-secrets,aws-iam-no-policy-wildcards,aws-ecr-enforce-immutable-repository,aws-rds-enable-performance-insights-encryption,aws-s3-encryption-customer-key,aws-sqs-enable-queue-encryption 
+          scan-type: 'config'
+          scan-ref: '.trivy'
+          trivy-config: './config/trivy.yaml'
 
   tflint:
     runs-on: ubuntu-latest
