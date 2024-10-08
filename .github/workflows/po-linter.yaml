@@ -26,6 +26,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      # - name: Check for deleted files
+      #   id: check_deleted
+      #   run: |
+      #     if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qE 'namespaces/live.cloud-platform.service.justice.gov.uk/*/*prometheus*.yaml|namespaces/live.cloud-platform.service.justice.gov.uk/*/*prometheus*.yml|namespaces/live-2.cloud-platform.service.justice.gov.uk/*/*prometheus*.yaml|namespaces/live-2.cloud-platform.service.justice.gov.uk/*/*prometheus*.yml'; then
+      #       echo "Files are being deleted, skipping linter"
+      #       exit 0
+      #     fi
+
       - name: Prometheus Operator Linter
         uses: prymitive/pint-action@v1
         with:
